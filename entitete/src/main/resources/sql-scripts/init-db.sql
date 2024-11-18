@@ -1,0 +1,3 @@
+INSERT INTO uporabnik (ime, priimek, email, telefon, tip_uporabnika, geslo, sol) VALUES ('Janez', 'Novak', 'janez.novak@gmail.com', '041123456', 'LASTNIK', 'janez123', '123');
+INSERT INTO uporabnik (ime, priimek, email, telefon, tip_uporabnika, geslo, sol) VALUES ('Maja', 'Kovač', 'maja.kovac@gmail.com', '041654321', 'LASTNIK', 'maja123', '123');
+INSERT INTO uporabnik (ime, priimek, email, telefon, tip_uporabnika, geslo, sol) VALUES ('Miha', 'Kovač', 'miha.kovac@gmail.com', '041654321', 'UPORABNIK', 'miha123', '123');

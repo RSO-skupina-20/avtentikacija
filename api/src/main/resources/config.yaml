@@ -1,0 +1,14 @@
+kumuluzee:
+  name: avtentikacija
+  version: 1.0.0
+  env:
+    name: dev
+  server:
+    http:
+      port: 8080
+  datasources:
+      - jndi-name: jdbc/avtentikacija
+        connection-url: jdbc:postgresql://localhost:5434/uporabniki
+        username: postgres
+        password: postgres
+        max-pool-size: 20
