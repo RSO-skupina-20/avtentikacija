@@ -46,11 +46,7 @@
             <groupId>com.kumuluz.ee.openapi</groupId>
             <artifactId>kumuluzee-openapi-mp-ui</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.kumuluz.ee.jwt</groupId>
-            <artifactId>kumuluzee-jwt-auth</artifactId>
-            <version>${kumuluzee-jwt-auth.version}</version>
-        </dependency>
+
         <dependency>
             <groupId>org.parboiled</groupId>
             <artifactId>parboiled-java</artifactId>
@@ -64,6 +60,7 @@
             <groupId>si.fri.rso.skupina20</groupId>
             <artifactId>storitve</artifactId>
         </dependency>
+
     </dependencies>
 
     <build>

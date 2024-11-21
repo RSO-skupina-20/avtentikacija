@@ -33,7 +33,8 @@ public class Uporabnik{
 
     public enum TipUporabnika {
         LASTNIK,
-        UPORABNIK
+        UPORABNIK,
+        ADMIN
     }
 
     @Column(name="geslo")

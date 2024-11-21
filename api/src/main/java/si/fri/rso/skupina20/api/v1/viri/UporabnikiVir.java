@@ -3,23 +3,21 @@ package si.fri.rso.skupina20.api.v1.viri;
 import com.kumuluz.ee.cors.annotations.CrossOrigin;
 import com.kumuluz.ee.rest.beans.QueryParameters;
 import org.eclipse.microprofile.openapi.annotations.Operation;
-import org.eclipse.microprofile.openapi.annotations.enums.ParameterIn;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.headers.Header;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
-import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-import org.jboss.weld.context.http.Http;
+import si.fri.rso.skupina20.auth.GenerirajZeton;
+import si.fri.rso.skupina20.dtos.UporabnikPrijavaDTO;
 import si.fri.rso.skupina20.dtos.UporabnikRegistracijaDTO;
 import si.fri.rso.skupina20.entitete.Uporabnik;
 import si.fri.rso.skupina20.zrna.UporabnikZrno;
 
-import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.json.Json;
@@ -27,7 +25,6 @@ import javax.json.JsonObject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.util.List;
-import java.util.logging.Logger;
 
 @ApplicationScoped
 @Path("/uporabniki")
@@ -50,7 +47,17 @@ public class UporabnikiVir {
                     headers = @Header(name = "X-Total-Count", description = "Število vrnjenih uporabnikov", schema = @Schema(type = SchemaType.INTEGER))),
             @APIResponse(responseCode = "404", description = "Uporabnikov ni mogoče najti", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class, example = "{\"napaka\": \"Uporabnikov ni mogoče najti\"}"))),
     })
-    public Response vrniUporabnike(){
+    @SecurityRequirement(name = "bearerAuth")
+    public Response vrniUporabnike(@HeaderParam("Authorization") String jwt){
+        // Dostopajo samo admini
+        List<String> dovoli_dostop = List.of("ADMIN");
+
+        // Preveri žeton
+        if(jwt == null || !GenerirajZeton.verifyToken(jwt, dovoli_dostop)){
+            return Response.status(Response.Status.UNAUTHORIZED).entity("{\"napaka\": \"Dostop zavrnjen\"}").build();
+        }
+
+        // Izvedi poizvedbo
         QueryParameters query = QueryParameters.query(uriInfo.getRequestUri().getQuery()).build();
         List<Uporabnik> uporabniki = uporabnikZrno.getUporabniki(query);
         if(uporabniki == null){
@@ -71,8 +78,17 @@ public class UporabnikiVir {
             @APIResponse(responseCode = "200", description = "Uporabnik", content = @Content(schema = @Schema(implementation = Uporabnik.class, example = "{\"id\": 1, \"ime\": \"Ime\", \"priimek\": \"Priimek\", \"email\": \"Email\", \"telefon\": \"Telefon\", \"tip_uporabnika\": \"Tip uporabnika\"}"))),
             @APIResponse(responseCode = "404", description = "Uporabnik ne obstaja", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class, example = "{\"napaka\": \"Uporabnik z id 1 ne obstaja\"}"))),
     })
+    @SecurityRequirement(name = "bearerAuth")
     @Path("{id}")
-    public Response vrniUporabnika(@PathParam("id") Integer id){
+    public Response vrniUporabnika(@PathParam("id") Integer id, @HeaderParam("Authorization") String jwt){
+        // Dostopajo samo admini in uporabnik sam zase
+        List<String> dovoli_dostop = List.of("ADMIN");
+
+        // Preveri žeton
+        if(jwt == null || !GenerirajZeton.verifyToken(jwt, dovoli_dostop)){
+            return Response.status(Response.Status.UNAUTHORIZED).entity("{\"napaka\": \"Dostop zavrnjen\"}").build();
+        }
+
         Uporabnik uporabnik = uporabnikZrno.getUporabnik(id);
         if(uporabnik == null){
             return Response.status(Response.Status.NOT_FOUND).entity("{\"napaka\": \"Uporabnik z id " + id + " ne obstaja\"}").build();
@@ -172,16 +188,30 @@ public class UporabnikiVir {
         return Response.status(Response.Status.CREATED).entity(web_token).build();
     }
 
+    @POST
+    @Path("prijava")
+    @Operation(
+            summary = "Prijava uporabnika",
+            description = "Omogoči prijavo uporabnika"
+    )
 
-    // Tesnti GET za preverjanje žetona jwt
+    public Response prijavaUporabnika(@RequestBody(description = "DTO objekt za prijavo uporabnika", content = @Content(schema = @Schema(implementation = UporabnikPrijavaDTO.class))) UporabnikPrijavaDTO uporabnikPrijavaDTO) {
+        if (uporabnikPrijavaDTO.getEmail() == null || uporabnikPrijavaDTO.getGeslo() == null || uporabnikPrijavaDTO.getEmail().equals("") || uporabnikPrijavaDTO.getGeslo().equals("")) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("{\"napaka\": \"Manjkajo obvezni podatki\"}").build();
+        }
+        String jwt = uporabnikZrno.prijavaUporabnika(uporabnikPrijavaDTO);
 
-    @GET
-    @Path("test")
-    public Response test(){
-        // print token
-        System.out.println("TOken: " + uriInfo.getQueryParameters().getFirst("token"));
-        return null;
+        if (jwt == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("{\"napaka\": \"Napačen email ali geslo\"}").build();
+        }
+        JsonObject web_token = Json.createObjectBuilder().add("jwt", jwt).build();
+        return Response.ok(web_token).build();
+
     }
+
+
+
+
 
 
 }

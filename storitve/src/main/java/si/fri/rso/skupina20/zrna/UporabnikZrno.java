@@ -4,6 +4,7 @@ import com.kumuluz.ee.rest.beans.QueryParameters;
 import com.kumuluz.ee.rest.utils.JPAUtils;
 import org.hibernate.annotations.common.util.impl.Log;
 import si.fri.rso.skupina20.auth.GenerirajZeton;
+import si.fri.rso.skupina20.dtos.UporabnikPrijavaDTO;
 import si.fri.rso.skupina20.entitete.Uporabnik;
 
 import javax.annotation.PostConstruct;
@@ -80,18 +81,47 @@ public class UporabnikZrno {
                 String hash = generirajHash(uporabnik.getGeslo(), uporabnik.getSol());
                 String geslo = uporabnik.getGeslo();
                 uporabnik.setGeslo(hash);
+
                 em.persist(uporabnik);
 
-                // Ne vračamo gesla in soli
+
                 uporabnik.setGeslo(null);
                 uporabnik.setSol(null);
                 log.info("Uporabnik uspešno dodan");
+
                 // Ustvari žeton
                 String jwt = GenerirajZeton.createToken(uporabnik);
                 return jwt;
             }
         } catch(Exception e){
             log.info("Napaka pri dodajanju uporabnika: " + e.getMessage());
+            return null;
+        }
+    }
+
+    // Prijava uporabnika
+    public String prijavaUporabnika(UporabnikPrijavaDTO uporabnik){
+try{
+            Query q = em.createNamedQuery("Uporabnik.getUporabnikByEmail", Uporabnik.class);
+            q.setParameter("email", uporabnik.getEmail());
+            Uporabnik uporabnikIzBaze = (Uporabnik) q.getSingleResult();
+
+            // Preveri geslo
+            if(preveriGeslo(uporabnik.getGeslo(), uporabnikIzBaze.getSol(), uporabnikIzBaze.getGeslo())){
+                // Geslo je pravilno
+                String jwt = GenerirajZeton.createToken(uporabnikIzBaze);
+                return jwt;
+            } else {
+                // Geslo ni pravilno
+                log.info("Napačno geslo");
+                return null;
+            }
+        } catch(NoResultException e){
+            // Uporabnik s tem emailom ne obstaja
+            log.info("Uporabnik s tem emailom ne obstaja");
+            return null;
+        } catch(Exception e){
+            log.info("Napaka pri prijavi uporabnika: " + e.getMessage());
             return null;
         }
     }
