@@ -3,7 +3,7 @@ package si.fri.rso.skupina20.zrna;
 import com.kumuluz.ee.rest.beans.QueryParameters;
 import com.kumuluz.ee.rest.utils.JPAUtils;
 import org.hibernate.annotations.common.util.impl.Log;
-import si.fri.rso.skupina20.auth.GeneriranjeJWT;
+import si.fri.rso.skupina20.auth.GenerirajZeton;
 import si.fri.rso.skupina20.entitete.Uporabnik;
 
 import javax.annotation.PostConstruct;
@@ -85,13 +85,9 @@ public class UporabnikZrno {
                 // Ne vračamo gesla in soli
                 uporabnik.setGeslo(null);
                 uporabnik.setSol(null);
-
+                log.info("Uporabnik uspešno dodan");
                 // Ustvari žeton
-                String jwt = GeneriranjeJWT.ustvariZeton(uporabnik);
-
-                // Testno preverjane funkcije preveriZeton TODO: odstrani
-                String valid = GeneriranjeJWT.preveriZeton(jwt);
-                log.info("Žeton je veljaven: " + valid);
+                String jwt = GenerirajZeton.createToken(uporabnik);
                 return jwt;
             }
         } catch(Exception e){
@@ -100,19 +96,4 @@ public class UporabnikZrno {
         }
     }
 
-    // Preveri veljavnost žetona
-    public boolean preveriZeton(String zeton){
-        log.info("Preverjanje žetona: " + zeton);
-        String email = GeneriranjeJWT.preveriZeton(zeton);
-        Query q = em.createNamedQuery("Uporabnik.getUporabnikByEmail", Uporabnik.class);
-        q.setParameter("email", email);
-        log.info("Email: " + email);
-        try {
-            Uporabnik uporabnik = (Uporabnik) q.getSingleResult();
-            return true;
-        } catch (NoResultException e) {
-            log.info("Uporabnik ne obstaja: " + e.getMessage());
-            return false;
-        }
-    }
 }

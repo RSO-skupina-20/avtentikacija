@@ -10,7 +10,7 @@ import javax.persistence.*;
         @NamedQuery(name = "Uporabnik.deleteUporabnik", query = "DELETE FROM uporabnik p WHERE p.id = :id"),
         @NamedQuery(name = "Uporabnik.getUporabnikByEmail", query = "SELECT p FROM uporabnik p WHERE p.email = :email")
 })
-public class Uporabnik {
+public class Uporabnik{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

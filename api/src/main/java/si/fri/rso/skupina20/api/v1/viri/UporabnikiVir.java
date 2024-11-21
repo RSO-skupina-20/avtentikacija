@@ -14,19 +14,18 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jboss.weld.context.http.Http;
 import si.fri.rso.skupina20.dtos.UporabnikRegistracijaDTO;
 import si.fri.rso.skupina20.entitete.Uporabnik;
 import si.fri.rso.skupina20.zrna.UporabnikZrno;
 
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.*;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -36,6 +35,7 @@ import java.util.logging.Logger;
 @Consumes(MediaType.APPLICATION_JSON)
 @CrossOrigin(supportedMethods = "GET, POST, DELETE, PUT, HEAD, OPTIONS")
 @Tag(name = "Uporabniki", description = "Upravljanje uporabnikov")
+
 public class UporabnikiVir {
     @Context
     protected UriInfo uriInfo;
@@ -173,49 +173,15 @@ public class UporabnikiVir {
     }
 
 
-    // Preverjanje veljavnosti žetona uporabnika
-    @GET
-    @Path("veljavnost-zetona")
-    @Operation(
-            summary = "Preveri veljavnost žetona - ŠE NE DELA, KER NE PRIKAZE KLJUCAVNICE",
-            description = "Preveri veljavnost žetona uporabnika"
-    )
-    @APIResponses({
-            @APIResponse(
-                    responseCode = "200",
-                    description = "Žeton je veljaven",
-                    content = @Content(mediaType = "application/json")
-            ),
-            @APIResponse(
-                    responseCode = "401",
-                    description = "Žeton ni veljaven",
-                    content = @Content(mediaType = "application/json")
-            )
-    })
-    @SecurityRequirement(name = "bearerAuth")
-    public Response preveriVeljavnostZetona(
-            @Parameter(
-                    description = "JWT žeton za preverjanje veljavnosti",
-                    required = true,
-                    in = ParameterIn.HEADER,
-                    schema = @Schema(type = SchemaType.STRING)
-            )
-            @HeaderParam("Authorization") String zeton) {
-        // print zeton
-        System.out.println(zeton);
-        if(uporabnikZrno.preveriZeton(zeton)){
-            return Response.ok().build();
-        } else {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        }
-    }
+    // Tesnti GET za preverjanje žetona jwt
 
     @GET
-    @Path("test-authorization")
-    @SecurityRequirement(name = "bearerAuth")
-    public Response testHeader(
-            @HeaderParam("Authorization") String zeton) {
-        System.out.println("Header: " + zeton);
-        return Response.ok().build();
+    @Path("test")
+    public Response test(){
+        // print token
+        System.out.println("TOken: " + uriInfo.getQueryParameters().getFirst("token"));
+        return null;
     }
+
+
 }
