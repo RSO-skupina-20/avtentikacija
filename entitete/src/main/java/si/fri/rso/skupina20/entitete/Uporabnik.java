@@ -108,4 +108,19 @@ public class Uporabnik{
     public void setSol(String sol) {
         this.sol = sol;
     }
+
+    // to string
+    @Override
+    public String toString() {
+        return "Uporabnik{" +
+                "id=" + id +
+                ", ime='" + ime + '\'' +
+                ", priimek='" + priimek + '\'' +
+                ", email='" + email + '\'' +
+                ", telefon='" + telefon + '\'' +
+                ", tipUporabnika=" + tipUporabnika +
+                ", geslo='" + geslo + '\'' +
+                ", sol='" + sol + '\'' +
+                '}';
+    }
 }

@@ -15,6 +15,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import si.fri.rso.skupina20.auth.GenerirajZeton;
 import si.fri.rso.skupina20.dtos.UporabnikPrijavaDTO;
 import si.fri.rso.skupina20.dtos.UporabnikRegistracijaDTO;
+import si.fri.rso.skupina20.dtos.UporabnikUpdateDTO;
 import si.fri.rso.skupina20.entitete.Uporabnik;
 import si.fri.rso.skupina20.zrna.UporabnikZrno;
 
@@ -40,13 +41,59 @@ public class UporabnikiVir {
     @Inject
     private UporabnikZrno uporabnikZrno;
 
+    // Pridobi vse uporabnike - dostop samo za admina
     @GET
-    @Operation(summary = "Pridobi seznam vseh uporabnikov", description = "Vrne seznam vseh uporabnikov")
+    @Operation(summary = "Pridobi seznam vseh uporabnikov - samo ADMIN", description = "Vrne seznam vseh uporabnikov")
     @APIResponses({
-            @APIResponse(responseCode = "200", description = "Seznam uporabnikov", content = @Content(schema = @Schema(implementation = Uporabnik.class)),
-                    headers = @Header(name = "X-Total-Count", description = "Število vrnjenih uporabnikov", schema = @Schema(type = SchemaType.INTEGER))),
-            @APIResponse(responseCode = "404", description = "Uporabnikov ni mogoče najti", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class, example = "{\"napaka\": \"Uporabnikov ni mogoče najti\"}"))),
+            @APIResponse(responseCode = "200", description = "Seznam uporabnikov",
+                    content = @Content(
+                            schema = @Schema(
+                                    implementation = Uporabnik.class,
+                                    example = "[\n" +
+                                            "  {\n" +
+                                            "    \"email\": \"janez.novak@gmail.com\",\n" +
+                                            "    \"id\": 1,\n" +
+                                            "    \"ime\": \"Janez\",\n" +
+                                            "    \"priimek\": \"Novak\",\n" +
+                                            "    \"telefon\": \"041123456\",\n" +
+                                            "    \"tipUporabnika\": \"LASTNIK\"\n" +
+                                            "  },\n" +
+                                            "  {\n" +
+                                            "    \"email\": \"maja.kovac@gmail.com\",\n" +
+                                            "    \"id\": 2,\n" +
+                                            "    \"ime\": \"Maja\",\n" +
+                                            "    \"priimek\": \"Kovač\",\n" +
+                                            "    \"telefon\": \"041654321\",\n" +
+                                            "    \"tipUporabnika\": \"LASTNIK\"\n" +
+                                            "  },\n" +
+                                            "  {\n" +
+                                            "    \"email\": \"miha.kovac@gmail.com\",\n" +
+                                            "    \"id\": 3,\n" +
+                                            "    \"ime\": \"Miha\",\n" +
+                                            "    \"priimek\": \"Kovač\",\n" +
+                                            "    \"telefon\": \"041654321\",\n" +
+                                            "    \"tipUporabnika\": \"UPORABNIK\"\n" +
+                                            "  }\n" +
+                                            "]"
+                            )
+                    ),
+                    headers = @Header(
+                            name = "X-Total-Count",
+                            description = "Število vrnjenih uporabnikov",
+                            schema = @Schema(type = SchemaType.INTEGER)
+                    )
+            ),
+            @APIResponse(responseCode = "404", description = "Uporabnikov ni mogoče najti",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(
+                                    implementation = String.class,
+                                    example = "{\"napaka\": \"Uporabnikov ni mogoče najti\"}"
+                            )
+                    )
+            )
     })
+
     @SecurityRequirement(name = "bearerAuth")
     public Response vrniUporabnike(@HeaderParam("Authorization") String jwt){
         // Dostopajo samo admini
@@ -72,11 +119,36 @@ public class UporabnikiVir {
         return Response.ok(uporabniki).header("X-Total-Count", count).build();
     }
 
+    // Pridobi uporabnika glede na id - dostop samo za admina
     @GET
     @Operation(summary = "Pridobi uporabnika glede na id", description = "Vrne uporabnika glede na id")
     @APIResponses({
-            @APIResponse(responseCode = "200", description = "Uporabnik", content = @Content(schema = @Schema(implementation = Uporabnik.class, example = "{\"id\": 1, \"ime\": \"Ime\", \"priimek\": \"Priimek\", \"email\": \"Email\", \"telefon\": \"Telefon\", \"tip_uporabnika\": \"Tip uporabnika\"}"))),
-            @APIResponse(responseCode = "404", description = "Uporabnik ne obstaja", content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class, example = "{\"napaka\": \"Uporabnik z id 1 ne obstaja\"}"))),
+            @APIResponse(responseCode = "200", description = "Uporabnik",
+                    content = @Content(
+                            schema = @Schema(
+                                    implementation = Uporabnik.class,
+                                    example = "{\"id\": 1, \"ime\": \"Ime\", \"priimek\": \"Priimek\", \"email\": \"Email\", \"telefon\": \"Telefon\", \"tip_uporabnika\": \"Tip uporabnika\"}"
+                            )
+                    )
+            ),
+            @APIResponse(responseCode = "404", description = "Uporabnik ne obstaja",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(
+                                    implementation = String.class,
+                                    example = "{\"napaka\": \"Uporabnik z id 1 ne obstaja\"}"
+                            )
+                    )
+            ),
+            @APIResponse(responseCode = "401", description = "Neavtoriziran dostop",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(
+                                    implementation = String.class,
+                                    example = "{\"napaka\": \"Dostop zavrnjen\"}"
+                            )
+                    )
+            )
     })
     @SecurityRequirement(name = "bearerAuth")
     @Path("{id}")
@@ -85,7 +157,9 @@ public class UporabnikiVir {
         List<String> dovoli_dostop = List.of("ADMIN");
 
         // Preveri žeton
-        if(jwt == null || !GenerirajZeton.verifyToken(jwt, dovoli_dostop)){
+        if(jwt == null){
+            return Response.status(Response.Status.UNAUTHORIZED).entity("{\"napaka\": \"Dostop zavrnjen\"}").build();
+        }else if(GenerirajZeton.getUserId(jwt) != id){
             return Response.status(Response.Status.UNAUTHORIZED).entity("{\"napaka\": \"Dostop zavrnjen\"}").build();
         }
 
@@ -95,6 +169,8 @@ public class UporabnikiVir {
         }
         return Response.ok(uporabnik).build();
     }
+
+
 
     // Registracija novega uporabnika (potreben DTO objekt da imamo 2 polji za geslo)
     @POST
@@ -107,7 +183,7 @@ public class UporabnikiVir {
             @APIResponse(
                     responseCode = "201",
                     description = "Uporabnik uspešno registriran",
-                    content = @Content(schema = @Schema(implementation = Uporabnik.class))
+                    content = @Content(schema = @Schema(implementation = Uporabnik.class, example = "{\"jwt\": \"<vaš JWT token>\"}"))
             ),
             @APIResponse(
                     responseCode = "400",
@@ -188,12 +264,40 @@ public class UporabnikiVir {
         return Response.status(Response.Status.CREATED).entity(web_token).build();
     }
 
+
+    // Prijava uporabnika
     @POST
     @Path("prijava")
     @Operation(
             summary = "Prijava uporabnika",
             description = "Omogoči prijavo uporabnika"
     )
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "Prijava uspešna",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(example = "{\"jwt\": \"<vaš JWT token>\"}")
+                    )
+            ),
+            @APIResponse(
+                    responseCode = "400",
+                    description = "Manjkajo obvezni podatki",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(example = "{\"napaka\": \"Manjkajo obvezni podatki\"}")
+                    )
+            ),
+            @APIResponse(
+                    responseCode = "401",
+                    description = "Napačen email ali geslo",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(example = "{\"napaka\": \"Napačen email ali geslo\"}")
+                    )
+            )
+    })
 
     public Response prijavaUporabnika(@RequestBody(description = "DTO objekt za prijavo uporabnika", content = @Content(schema = @Schema(implementation = UporabnikPrijavaDTO.class))) UporabnikPrijavaDTO uporabnikPrijavaDTO) {
         if (uporabnikPrijavaDTO.getEmail() == null || uporabnikPrijavaDTO.getGeslo() == null || uporabnikPrijavaDTO.getEmail().equals("") || uporabnikPrijavaDTO.getGeslo().equals("")) {
@@ -209,9 +313,110 @@ public class UporabnikiVir {
 
     }
 
+    // posodobitev uporabniških parametrokv
+    @PUT
+    @Operation(
+            summary = "Posodobi uporabnika",
+            description = "Omogoči posodobitev uporabnika"
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "Uporabnik uspešno posodobljen",
+                    content = @Content(schema = @Schema(implementation = Uporabnik.class, example = "{\"id\": 1, \"ime\": \"Ime\", \"priimek\": \"Priimek\", \"email\": \"Email\", \"telefon\": \"Telefon\", \"tip_uporabnika\": \"Tip uporabnika\"}"))
+            ),
+            @APIResponse(
+                    responseCode = "401",
+                    description = "Dostop zavrnjen",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(example = "{\"napaka\": \"Dostop zavrnjen\"}")
+                    )
+            ),
+            @APIResponse(
+                    responseCode = "404",
+                    description = "Uporabnik ne obstaja, ali pa je email že zaseden",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(example = "{\"napaka\": \"Uporabnik ne obstaja, ali pa je email že zaseden\"}")
+                    )
+            )
+    })
+    public Response posodobiUporabnika(@HeaderParam("Authorization") String jwt, @RequestBody(description = "Uporabnik", content = @Content(schema = @Schema(implementation = UporabnikUpdateDTO.class))) UporabnikUpdateDTO uporabnik) {
+        // Dostopa lahko samo uporabnik do sebe
+        int uporabnik_id = GenerirajZeton.getUserId(jwt);
+
+        if (uporabnik_id == -1) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("{\"napaka\": \"Dostop zavrnjen\"}").build();
+        }
+        Uporabnik uporabnik_new = new Uporabnik();
+        uporabnik_new.setIme(uporabnik.getIme());
+        uporabnik_new.setPriimek(uporabnik.getPriimek());
+        uporabnik_new.setEmail(uporabnik.getEmail());
+        uporabnik_new.setTelefon(uporabnik.getTelefon());
+        uporabnik_new.setGeslo("");
+        uporabnik_new.setSol("");
+        uporabnik_new.setId(uporabnik_id);
+
+        Uporabnik u = uporabnikZrno.updateUporabnik(uporabnik_id, uporabnik_new);
+
+        if (u == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("{\"napaka\": \"Uporabnik ne obstaja, ali pa je email že zaseden\"}").build();
+        }
+        u.setGeslo(null);
+        u.setSol(null);
+
+        return Response.ok(u).build();
+    }
 
 
+    // brisanje uporabnika
+    @DELETE
+    @Path("{id}")
+    @Operation(
+            summary = "Izbriši uporabnika",
+            description = "Omogoči brisanje uporabnika"
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "204",
+                    description = "Uporabnik uspešno izbrisan"
+            ),
+            @APIResponse(
+                    responseCode = "401",
+                    description = "Dostop zavrnjen",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(example = "{\"napaka\": \"Dostop zavrnjen\"}")
+                    )
+            ),
+            @APIResponse(
+                    responseCode = "404",
+                    description = "Uporabnik ne obstaja",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(example = "{\"napaka\": \"Uporabnik ne obstaja\"}")
+                    )
+            )
+    })
+
+    public Response izbrisiUporabnika(@HeaderParam("Authorization") String jwt) {
+        // Dostopa lahko samo uporabnik do sebe
+        int uporabnik_id = GenerirajZeton.getUserId(jwt);
+
+        if (uporabnik_id == -1) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("{\"napaka\": \"Dostop zavrnjen\"}").build();
+        }
+
+        boolean izbrisano = uporabnikZrno.deleteUporabnik(uporabnik_id);
+
+        if (!izbrisano) {
+            return Response.status(Response.Status.NOT_FOUND).entity("{\"napaka\": \"Uporabnik ne obstaja\"}").build();
+        }
+        return Response.status(Response.Status.NO_CONTENT).build();
+    }
 
 
-
-}
+    }

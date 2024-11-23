@@ -9,7 +9,8 @@ import java.util.List;
 
 public class GenerirajZeton {
 
-    private static String secretKey = "mySecret";
+    // Pridobi iz docker env
+    private static String secretKey = System.getenv("JWT_SECRET");
 
     // Ustvairi žeton
     public static String createToken(Uporabnik uporabnik){
@@ -43,5 +44,16 @@ public class GenerirajZeton {
             return false;
         }
         return false;
+    }
+    // Pridobi id uporabnika iz žetona
+    public static int getUserId(String token){
+        // Seznam vseh tipov uporabnikov, ki imajo dostop do storitve
+        List roles = List.of("UPORABNIK", "ADMIN", "LASTNIK");
+        if(verifyToken(token, roles)){
+            token = token.replace("Bearer ", "");
+            DecodedJWT jwt = JWT.decode(token);
+            return jwt.getClaim("id").asInt();
+        }
+        return -1;
     }
 }

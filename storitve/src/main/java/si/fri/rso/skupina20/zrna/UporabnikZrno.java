@@ -84,9 +84,6 @@ public class UporabnikZrno {
 
                 em.persist(uporabnik);
 
-
-                uporabnik.setGeslo(null);
-                uporabnik.setSol(null);
                 log.info("Uporabnik uspešno dodan");
 
                 // Ustvari žeton
@@ -105,6 +102,7 @@ try{
             Query q = em.createNamedQuery("Uporabnik.getUporabnikByEmail", Uporabnik.class);
             q.setParameter("email", uporabnik.getEmail());
             Uporabnik uporabnikIzBaze = (Uporabnik) q.getSingleResult();
+
 
             // Preveri geslo
             if(preveriGeslo(uporabnik.getGeslo(), uporabnikIzBaze.getSol(), uporabnikIzBaze.getGeslo())){
@@ -126,4 +124,53 @@ try{
         }
     }
 
+    // Posodobi uporabnika
+    @Transactional
+    public Uporabnik updateUporabnik(int id, Uporabnik uporabnik) {
+        Uporabnik u = em.find(Uporabnik.class, id);
+        if (u == null) {
+            return null;
+        }
+        log.info("Posodabljam uporabnika: " + uporabnik.getEmail() + " " + u.getEmail());
+        if (uporabnik.getEmail() != u.getEmail()) {
+            Query q = em.createNamedQuery("Uporabnik.getUporabnikByEmail", Uporabnik.class);
+            q.setParameter("email", uporabnik.getEmail());
+            try {
+                // Uporabnik s tem emailom že obstaja
+                q.getSingleResult();
+                return null;
+            } catch (NoResultException e) {
+                u.setEmail(uporabnik.getEmail());
+            }
+        }
+        u.setIme(uporabnik.getIme());
+        u.setPriimek(uporabnik.getPriimek());
+        u.setTelefon(uporabnik.getTelefon());
+
+        log.info("Uporabnik uspešno posodobljen");
+        log.info("Uporabnik: " + u.toString());
+        em.getTransaction().begin();
+        u = em.merge(u);
+        em.getTransaction().commit();
+        return u;
+    }
+
+    // Odstrani uporabnika
+    @Transactional
+    public boolean deleteUporabnik(int id) {
+        // Tu se kliče še api za prostore/dogodke, da se odstranijo vsi podatki, ki so povezani s tem uporabnikom
+        Uporabnik uporabnik = em.find(Uporabnik.class, id);
+        if (uporabnik != null) {
+            em.getTransaction().begin();
+            em.remove(uporabnik);
+            em.getTransaction().commit();
+            return true;
+        }
+        return false;
+    }
+
+
+
 }
+
+

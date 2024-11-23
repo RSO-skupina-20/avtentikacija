@@ -57,6 +57,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.kumuluz.ee.health</groupId>
+            <artifactId>kumuluzee-health</artifactId>
+            <version>${kumuluzee-health.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>si.fri.rso.skupina20</groupId>
             <artifactId>storitve</artifactId>
         </dependency>

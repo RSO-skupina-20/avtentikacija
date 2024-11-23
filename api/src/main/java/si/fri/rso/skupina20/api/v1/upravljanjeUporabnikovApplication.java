@@ -19,7 +19,7 @@ import javax.ws.rs.core.Application;
                 version = "v1",
                 description = "Upravljanje uporabnikov API je namenjen upravljanju uporabnikov v sistemu."
         ),
-        servers = @Server(url = "http://localhost:8080")
+        servers = @Server(url = "http://localhost:8081")
 
 )
 @SecurityScheme(

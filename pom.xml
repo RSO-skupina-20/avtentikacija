@@ -28,6 +28,7 @@
         <kumuluzee-cors.version>2.0.0</kumuluzee-cors.version>
         <jjwt.version>0.12.6</jjwt.version>
         <com.auth0-java-jwt.version>4.4.0</com.auth0-java-jwt.version>
+        <kumuluzee-health.version>2.4.4</kumuluzee-health.version>
     </properties>
 
     <dependencyManagement>
