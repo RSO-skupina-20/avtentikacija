@@ -1,7 +1,7 @@
 name: CI/CD Pipeline
 
 on:
-  puch:
+  push:
     branches:
       - dev
   pull_request:
