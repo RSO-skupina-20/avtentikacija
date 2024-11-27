@@ -62,6 +62,8 @@
             <version>${kumuluzee-health.version}</version>
         </dependency>
 
+
+
         <dependency>
             <groupId>si.fri.rso.skupina20</groupId>
             <artifactId>storitve</artifactId>

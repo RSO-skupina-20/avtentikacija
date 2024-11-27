@@ -11,4 +11,18 @@ kumuluzee:
         connection-url: ${DB_URL}
         username: ${DB_USER}
         password: ${DB_PASSWORD}
-        max-pool-size: 20
+        pool:
+          max-size: 20
+  health:
+    servlet:
+      mapping: /health/
+      enabled: true
+    logs:
+        enabled: true
+        level: INFO
+        period-s: 3600
+    checks:
+      data-source-health-check:
+        jndi-name: jdbc/avtentikacija
+      disk-space-health-check:
+        threshold: 100000000
