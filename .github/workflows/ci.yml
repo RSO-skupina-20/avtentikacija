@@ -10,6 +10,23 @@ on:
 
 
 jobs:
+  build:
+    name: Build with Maven
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: '16'
+
+      - name: Build with Maven
+        run: mvn clean install -DskipTests=true
+
+      - name: Check if the JAR file exists
+        run: ls -l api/target
   push_to_registry:
     name: Push Docker image to GitHub Packages
     needs: build
