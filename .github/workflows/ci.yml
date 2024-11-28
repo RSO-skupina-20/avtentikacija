@@ -17,10 +17,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java
-        uses: actions/setup-java@v1
-        with:
-          java-version: '16'
 
   push_to_registry:
     name: Push to Docker Hub
@@ -29,6 +25,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: '16'
 
       - name: Build with Maven
         run: mvn clean install -DskipTests=true
