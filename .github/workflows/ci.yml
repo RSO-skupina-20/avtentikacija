@@ -32,7 +32,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: jar-file
-          path: api/target/api-1.0.0-SNAPSHOT.jar
+          path: api/target/*.jar
 
   push_to_registry:
     name: Push to Docker Hub
