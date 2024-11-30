@@ -29,6 +29,9 @@
         <jjwt.version>0.12.6</jjwt.version>
         <com.auth0-java-jwt.version>4.4.0</com.auth0-java-jwt.version>
         <kumuluzee-health.version>2.4.4</kumuluzee-health.version>
+        <junit-jupiter-api.version>5.7.0</junit-jupiter-api.version>
+        <mockito-core.version>3.6.28</mockito-core.version>
+        <junit.version>5.7.2</junit.version>
     </properties>
 
     <dependencyManagement>
