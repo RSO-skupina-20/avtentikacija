@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: avtentikacija-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: avtentikacija
+  template:
+    metadata:
+      labels:
+        app: avtentikacija
+    spec:
+      containers:
+        - image: jantopolovec/avtentikacija
+          name: avtentikacija
+          ports:
+            - containerPort: 8080
+              name: server
+              protocol: TCP
+          livenessProbe: # Corrected field name
+            httpGet:
+              path: /health/liveness
+              port: server
+            initialDelaySeconds: 20
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health/readiness
+              port: server
+            initialDelaySeconds: 20
+            periodSeconds: 5
+          env:
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-secrets
+                  key: DB_URL
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                    name: my-app-secrets
+                    key: DB_PASSWORD
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-secrets
+                  key: JWT_SECRET
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: avtentikacija-service
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 8081
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: avtentikacija

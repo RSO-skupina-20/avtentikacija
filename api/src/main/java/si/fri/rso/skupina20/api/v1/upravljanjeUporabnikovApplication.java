@@ -19,8 +19,10 @@ import javax.ws.rs.core.Application;
                 version = "v1",
                 description = "Upravljanje uporabnikov API je namenjen upravljanju uporabnikov v sistemu."
         ),
-        servers = @Server(url = "http://localhost:8081")
-
+        servers = {
+                @Server(url = "http://4.255.70.176:8081"),  // External server URL
+                @Server(url = "http://localhost:8081")     // Local development server URL
+        }
 )
 @SecurityScheme(
         securitySchemeName = "bearerAuth",
