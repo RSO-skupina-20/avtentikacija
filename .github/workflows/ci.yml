@@ -56,11 +56,12 @@ jobs:
           labels: ${{ secrets.DOCKER_USERNAME }}/avtentikacija:latest
 
       - name: Decode kubeconfig and set up kubectl
-        run: |
-          echo "${{ secrets.AZURE_KUBE_CONFIG }}" | base64 -d > kubeconfig
-          export KUBECONFIG=$PWD/kubeconfig
-      - name: Verify kubeconfig
-        run: kubectl config view
+        uses: azure/k8s-set-context@v1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG_DATA }}
+
+
 
       - name: Deploy to AKS
         uses: azure/k8s-deploy@v1
