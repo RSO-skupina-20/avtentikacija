@@ -2,6 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: avtentikacija-deployment
+  labels:
+    app: shared-app
+    service: avtentikacija
 spec:
   replicas: 1
   selector:
@@ -53,15 +56,31 @@ spec:
                   name: my-app-secrets
                   key: JWT_SECRET
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
   name: avtentikacija-service
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
-    - port: 8081
+    - port: 8080
       protocol: TCP
       targetPort: 8080
   selector:
     app: avtentikacija
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: shared-loadbalancer-service
+spec:
+    type: LoadBalancer
+    ports:
+      - name: avtentikacija
+        port: 8080
+        targetPort: 8080
+    selector:
+      app: shared-app
