@@ -56,10 +56,14 @@ jobs:
           labels: ${{ secrets.DOCKER_USERNAME }}/avtentikacija:latest
 
       - name: Decode kubeconfig and set up kubectl
-        uses: azure/k8s-set-context@v1
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBE_CONFIG_DATA }}
+        run: |
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 --decode > kubeconfig
+          mkdir -p ~/.kube
+          mv kubeconfig ~/.kube/config
+
+      - name: Test kubernetes connection
+        run: kubectl get nodes
+
 
 
 
