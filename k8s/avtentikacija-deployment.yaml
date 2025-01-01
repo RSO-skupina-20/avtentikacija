@@ -13,8 +13,8 @@ spec:
         app: avtentikacija
     spec:
       containers:
-        - image: jantopolovec/avtentikacija
-          name: avtentikacija
+        - name: avtentikacija
+          image: rsoskupina20.azurecr.io/avtentikacija:latest
           ports:
             - containerPort: 8080
               name: server

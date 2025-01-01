@@ -54,3 +54,27 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/avtentikacija:latest
           labels: ${{ secrets.DOCKER_USERNAME }}/avtentikacija:latest
+
+
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Build and push Docker image to ACR
+        run: |
+          docker build . -t ${{ secrets.AZURE_REGISTRY_NAME }}.azurecr.io/avtentikacija:latest .
+          docker push ${{ secrets.AZURE_REGISTRY_NAME }}.azurecr.io/avtentikacija:latest
+
+      - name: Set AKS context
+        uses: azure/aks-set-context@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          resource-group: ${{ secrets.AZURE_RESOURCE_GROUP }}
+          cluster-name: ${{ secrets.AZURE_CLUSTER_NAME }}
+
+      - name: Deploy to AKS
+        uses: azure/k8s-deploy@v1
+        with:
+          manifests: k8s/avtentikacija-deployment.yaml
+          images: ${{ secrets.AZURE_REGISTRY_NAME }}.azurecr.io/avtentikacija:latest
