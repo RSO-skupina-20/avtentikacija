@@ -55,12 +55,12 @@ jobs:
           tags: ${{ secrets.DOCKER_USERNAME }}/avtentikacija:latest
           labels: ${{ secrets.DOCKER_USERNAME }}/avtentikacija:latest
 
-
-      - name: Azure login
-        run: az login
-
-      - name: Set AKS context
-        run: az aks get-credentials --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --name ${{ secrets.AZURE_CLUSTER_NAME }}
+      - name: Decode kubeconfig and set up kubectl
+        run: |
+          echo "${{ secrets.AZURE_KUBE_CONFIG }}" | base64 -d > kubeconfig
+          export KUBECONFIG=$PWD/kubeconfig
+      - name: Verify kubeconfig
+        run: kubectl config view
 
       - name: Deploy to AKS
         uses: azure/k8s-deploy@v1

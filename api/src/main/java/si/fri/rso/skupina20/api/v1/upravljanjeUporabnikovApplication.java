@@ -15,7 +15,7 @@ import javax.ws.rs.core.Application;
 
 @OpenAPIDefinition(
         info = @Info(
-                title = "Upravljanje uporabnikov API 2.0 (test)",
+                title = "Upravljanje uporabnikov API",
                 version = "v1",
                 description = "Upravljanje uporabnikov API je namenjen upravljanju uporabnikov v sistemu."
         ),
