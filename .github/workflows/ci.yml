@@ -3,24 +3,16 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
+      - main
       - dev
   pull_request:
     branches:
+      - main
       - dev
-
 
 jobs:
   build:
     name: Build with Maven
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-
-  push_to_registry:
-    name: Push to Docker Hub
-    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -36,6 +28,15 @@ jobs:
 
       - name: Run unit tests
         run: mvn test
+
+  push_to_registry:
+    name: Push to Docker Hub
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev' # Samo za 'dev' branch
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -53,19 +54,21 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/avtentikacija:latest
-          labels: ${{ secrets.DOCKER_USERNAME }}/avtentikacija:latest
 
-      - name: Decode kubeconfig and set up kubectl
-        run: |
-          echo "${{ secrets.KUBE_CONFIG }}" | base64 --decode > kubeconfig
-          mkdir -p ~/.kube
-          mv kubeconfig ~/.kube/config
+  deploy_to_azure:
+    name: Deploy to Azure
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' # Samo za 'main' branch
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Test kubernetes connection
-        run: kubectl get nodes
+      - name: Azure login
+        run: az login --username ${{ secrets.AZURE_USERNAME }} --password ${{ secrets.AZURE_PASSWORD }}
 
-
-
+      - name: Set AKS context
+        run: az aks get-credentials --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --name ${{ secrets.AZURE_CLUSTER_NAME }}
 
       - name: Deploy to AKS
         uses: azure/k8s-deploy@v1
