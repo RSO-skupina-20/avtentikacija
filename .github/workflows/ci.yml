@@ -65,7 +65,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Azure login
-        run: az login --username ${{ secrets.AZURE_USERNAME }} --password ${{ secrets.AZURE_PASSWORD }}
+        run: az login
 
       - name: Set AKS context
         run: az aks get-credentials --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --name ${{ secrets.AZURE_CLUSTER_NAME }}
