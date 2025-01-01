@@ -77,10 +77,17 @@ kind: Service
 metadata:
   name: shared-loadbalancer-service
 spec:
-    type: LoadBalancer
-    ports:
-      - name: avtentikacija
-        port: 8080
-        targetPort: 8080
-    selector:
-      app: shared-app
+
+  type: LoadBalancer
+  ports:
+    - name: avtentikacija
+      port: 8080
+      targetPort: 8080
+    - name: upravljanje-prostorov
+      port: 8081
+      targetPort: 8080
+    - name: upravljanje-dogodkov
+      port: 8082
+      targetPort: 8080
+  selector:
+    shared: "true"
