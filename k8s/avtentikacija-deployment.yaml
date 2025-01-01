@@ -85,9 +85,9 @@ spec:
       targetPort: 8080
     - name: upravljanje-prostorov
       port: 8081
-      targetPort: 8080
+      targetPort: 8081
     - name: upravljanje-dogodkov
       port: 8082
-      targetPort: 8080
+      targetPort: 8082
   selector:
     shared: "true"
