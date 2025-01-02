@@ -20,8 +20,8 @@ import javax.ws.rs.core.Application;
                 description = "Upravljanje uporabnikov API je namenjen upravljanju uporabnikov v sistemu."
         ),
         servers = {
-                @Server(url = "http://172.212.44.19/avtentikacija"),  // External server URL
-                @Server(url = "http://localhost:8081")     // Local development server URL
+                @Server(url = "http://localhost:8081"),     // Local development server URL
+                @Server(url = "http://172.212.44.19/avtentikacija")  // External server URL
         }
 )
 @SecurityScheme(
