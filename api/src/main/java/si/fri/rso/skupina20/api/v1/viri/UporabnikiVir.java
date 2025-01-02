@@ -2,6 +2,7 @@ package si.fri.rso.skupina20.api.v1.viri;
 
 import com.kumuluz.ee.cors.annotations.CrossOrigin;
 import com.kumuluz.ee.rest.beans.QueryParameters;
+import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.headers.Header;
@@ -298,7 +299,7 @@ public class UporabnikiVir {
                     )
             )
     })
-
+    @Counted(name = "prijavaUporabnikaCounter")
     public Response prijavaUporabnika(@RequestBody(description = "DTO objekt za prijavo uporabnika", content = @Content(schema = @Schema(implementation = UporabnikPrijavaDTO.class))) UporabnikPrijavaDTO uporabnikPrijavaDTO) {
         if (uporabnikPrijavaDTO.getEmail() == null || uporabnikPrijavaDTO.getGeslo() == null || uporabnikPrijavaDTO.getEmail().equals("") || uporabnikPrijavaDTO.getGeslo().equals("")) {
             return Response.status(Response.Status.BAD_REQUEST).entity("{\"napaka\": \"Manjkajo obvezni podatki\"}").build();
@@ -373,9 +374,8 @@ public class UporabnikiVir {
 
     // brisanje uporabnika
     @DELETE
-    @Path("{id}")
     @Operation(
-            summary = "Izbriši uporabnika",
+            summary = "Izbris svojega računa",
             description = "Omogoči brisanje uporabnika"
     )
     @SecurityRequirement(name = "bearerAuth")

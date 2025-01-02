@@ -26,3 +26,7 @@ kumuluzee:
         jndi-name: jdbc/avtentikacija
       disk-space-health-check:
         threshold: 100000000
+  metrics:
+    servlet:
+      enabled: true
+      mapping: /metrics
