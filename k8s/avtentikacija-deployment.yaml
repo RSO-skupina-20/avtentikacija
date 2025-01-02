@@ -28,13 +28,6 @@ spec:
             initialDelaySeconds: 20
             periodSeconds: 3600
             failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /health/ready
-              port: 8080
-            initialDelaySeconds: 60
-            periodSeconds: 3600
-            failureThreshold: 3
           env:
             - name: DB_URL
               valueFrom:
