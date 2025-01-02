@@ -4,7 +4,6 @@ metadata:
   name: avtentikacija-deployment
   labels:
     app: avtentikacija
-    shared: "true"
 spec:
   replicas: 1
   selector:
@@ -23,18 +22,13 @@ spec:
             - containerPort: 8080
               name: server
               protocol: TCP
-          livenessProbe: # Corrected field name
+          livenessProbe:
             httpGet:
-              path: /health/liveness
-              port: server
+              path: /health/ready
+              port: 8080
             initialDelaySeconds: 20
             periodSeconds: 3600
-          readinessProbe:
-            httpGet:
-              path: /health/readiness
-              port: server
-            initialDelaySeconds: 20
-            periodSeconds: 3600
+            failureThreshold: 3
           env:
             - name: DB_URL
               valueFrom:
@@ -56,6 +50,7 @@ spec:
                 secretKeyRef:
                   name: my-app-secrets
                   key: JWT_SECRET
+
 ---
 apiVersion: v1
 kind: Service
@@ -65,28 +60,47 @@ spec:
   type: ClusterIP
   ports:
     - port: 8080
-      protocol: TCP
       targetPort: 8080
+      protocol: TCP
   selector:
     app: avtentikacija
 
+
 ---
 
-apiVersion: v1
-kind: Service
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
-  name: shared-loadbalancer-service
+  name: avtentikacija-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
-  type: LoadBalancer
-  ports:
-    - name: avtentikacija
-      port: 8080
-      targetPort: 8080
-    - name: upravljanje-prostorov
-      port: 8081
-      targetPort: 8081
-    - name: upravljanje-dogodkov
-      port: 8082
-      targetPort: 8082
-  selector:
-    shared: "true"
+  ingressClassName: nginx
+  rules:
+    - host: ""
+      http:
+        paths:
+          - path: /avtentikacija(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: avtentikacija-service
+                port:
+                  number: 8080
+          - path: /upravljanje-prostorov(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: upravljanje-prostorov-service
+                port:
+                  number: 8080
+          - path: /upravljanje-dogodkov(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: upravljanje-dogodkov-service
+                port:
+                  number: 8080
