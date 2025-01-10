@@ -122,6 +122,13 @@ spec:
                 name: upravljanje-dogodkov-service
                 port:
                   number: 8080
+          - path: /.well-known/acme-challenge/(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: cm-acme-http-solver-service
+                port:
+                  number: 80
 # tsl
   tls:
     - hosts:
