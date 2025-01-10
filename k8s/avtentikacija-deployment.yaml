@@ -13,6 +13,7 @@ spec:
     metadata:
       labels:
         app: avtentikacija
+        shared: "true"
     spec:
       containers:
         - name: avtentikacija
@@ -51,7 +52,6 @@ spec:
                   key: JWT_SECRET
 
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -68,23 +68,6 @@ spec:
 
 ---
 
-apiVersion: cert-manager.io/v1
-kind: ClusterIssuer
-metadata:
-  name: letsencrypt-prod
-spec:
-  acme:
-    email: jantopolovec7@gmail.com # Nadomesti z dejanskim emailom
-    server: https://acme-v02.api.letsencrypt.org/directory
-    privateKeySecretRef:
-      name: letsencrypt-prod-key  # Ta ključ bo shranil zasebni ključ
-    solvers:
-      - http01:
-          ingress:
-            class: nginx
-
----
-
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -94,11 +77,10 @@ metadata:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
-    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: nginx
   rules:
-    - host: rso-rezervacije.duckdns.org
+    - host: ""
       http:
         paths:
           - path: /avtentikacija(/|$)(.*)
@@ -122,15 +104,3 @@ spec:
                 name: upravljanje-dogodkov-service
                 port:
                   number: 8080
-          - path: /.well-known/acme-challenge/(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: cm-acme-http-solver-service
-                port:
-                  number: 80
-# tsl
-  tls:
-    - hosts:
-        - rso-rezervaicje.duckdns.org
-      secretName: rso-rezervacije-tls-kkt9f 
