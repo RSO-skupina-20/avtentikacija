@@ -126,4 +126,4 @@ spec:
   tls:
     - hosts:
         - rso-rezervaicje.duckdns.org
-      secretName: rso-rezervacije-tls
+      secretName: rso-rezervacije-tls-kkt9f 
